@@ -1,0 +1,208 @@
+package pl.sinusoide.sinuschat.desktop.i18n
+
+class ChatMenuStrings(
+    val pin: String,
+    val unpin: String,
+    val pinned: String,
+    val unpinned: String,
+    val mute: String,
+    val markRead: String,
+    val localName: String,
+    val block: String,
+    val unblock: String,
+    val deleteChat: String,
+    val leaveGroup: String,
+    val deleteQ: String,
+    val deleteQGroup: String,
+    val deleteDesc: (String) -> String,
+    val deleteDescGroup: String,
+    val deleteLeave: String,
+    val deleted: String,
+    val blockAndDelete: String,
+    val blockQ: (String) -> String,
+    val factProfile: String,
+    val factServer: String,
+    val factUndo: String,
+    val blocked: (String) -> String,
+    val unblocked: String,
+    val cancel: String
+) {
+    companion object {
+        val PL = ChatMenuStrings(
+            pin = "Przypnij",
+            unpin = "Odepnij",
+            pinned = "Przypięto",
+            unpinned = "Odpięto",
+            mute = "Wycisz powiadomienia",
+            markRead = "Oznacz jako przeczytane",
+            localName = "Zmień lokalną nazwę",
+            block = "Zablokuj",
+            unblock = "Odblokuj",
+            deleteChat = "Usuń czat",
+            leaveGroup = "Opuść grupę",
+            deleteQ = "Usunąć czat?",
+            deleteQGroup = "Opuścić grupę?",
+            deleteDesc = { a0: String -> "Rozmowa z " + a0.toString() + " zniknie z tego telefonu razem z wiadomościami i multimediami. Rozmówca nadal będzie ją mieć." },
+            deleteDescGroup = "Opuścisz tę grupę, a czat zniknie z tego telefonu razem z wiadomościami i multimediami.",
+            deleteLeave = "Opuść grupę i usuń czat",
+            deleted = "Czat usunięty",
+            blockAndDelete = "Zablokuj i usuń czat",
+            blockQ = { a0: String -> "Zablokować " + a0.toString() + "?" },
+            factProfile = "Nie zobaczy zmian Twojego imienia ani zdjęcia",
+            factServer = "Wiadomości i połączenia od tej osoby odrzuci już serwer — nic nie będzie tam na Ciebie czekać",
+            factUndo = "Możesz odblokować w każdej chwili",
+            blocked = { a0: String -> "Zablokowano: " + a0.toString() },
+            unblocked = "Użytkownik odblokowany",
+            cancel = "Anuluj"
+        )
+
+        val EN = ChatMenuStrings(
+            pin = "Pin",
+            unpin = "Unpin",
+            pinned = "Pinned",
+            unpinned = "Unpinned",
+            mute = "Mute notifications",
+            markRead = "Mark as read",
+            localName = "Change local name",
+            block = "Block",
+            unblock = "Unblock",
+            deleteChat = "Delete chat",
+            leaveGroup = "Leave group",
+            deleteQ = "Delete this chat?",
+            deleteQGroup = "Leave the group?",
+            deleteDesc = { a0: String -> "The chat with " + a0.toString() + " will be removed from this phone along with its messages and media. They will still have it." },
+            deleteDescGroup = "You will leave this group and the chat will be removed from this phone along with its messages and media.",
+            deleteLeave = "Leave group and delete chat",
+            deleted = "Chat deleted",
+            blockAndDelete = "Block and delete chat",
+            blockQ = { a0: String -> "Block " + a0.toString() + "?" },
+            factProfile = "They won't see changes to your name or photo",
+            factServer = "The server will reject their messages and calls — nothing will wait there for you",
+            factUndo = "You can unblock at any time",
+            blocked = { a0: String -> "Blocked: " + a0.toString() },
+            unblocked = "User unblocked",
+            cancel = "Cancel"
+        )
+
+        val CS = ChatMenuStrings(
+            pin = "Připnout",
+            unpin = "Odepnout",
+            pinned = "Připnuto",
+            unpinned = "Odepnuto",
+            mute = "Ztlumit oznámení",
+            markRead = "Označit jako přečtené",
+            localName = "Změnit místní jméno",
+            block = "Zablokovat",
+            unblock = "Odblokovat",
+            deleteChat = "Smazat chat",
+            leaveGroup = "Opustit skupinu",
+            deleteQ = "Smazat chat?",
+            deleteQGroup = "Opustit skupinu?",
+            deleteDesc = { a0: String -> "Konverzace s " + a0.toString() + " zmizí z tohoto telefonu i se zprávami a médii. Protějšek ji bude mít dál." },
+            deleteDescGroup = "Opustíte tuto skupinu a chat zmizí z tohoto telefonu i se zprávami a médii.",
+            deleteLeave = "Opustit skupinu a smazat chat",
+            deleted = "Chat smazán",
+            blockAndDelete = "Zablokovat a smazat chat",
+            blockQ = { a0: String -> "Zablokovat " + a0.toString() + "?" },
+            factProfile = "Neuvidí změny vašeho jména ani fotky",
+            factServer = "Zprávy a hovory od této osoby odmítne už server — nic tam na vás nebude čekat",
+            factUndo = "Odblokovat můžete kdykoli",
+            blocked = { a0: String -> "Zablokováno: " + a0.toString() },
+            unblocked = "Uživatel odblokován",
+            cancel = "Zrušit"
+        )
+
+        val UK = ChatMenuStrings(
+            pin = "Закріпити",
+            unpin = "Відкріпити",
+            pinned = "Закріплено",
+            unpinned = "Відкріплено",
+            mute = "Вимкнути сповіщення",
+            markRead = "Позначити як прочитане",
+            localName = "Змінити локальне ім’я",
+            block = "Заблокувати",
+            unblock = "Розблокувати",
+            deleteChat = "Видалити чат",
+            leaveGroup = "Вийти з групи",
+            deleteQ = "Видалити чат?",
+            deleteQGroup = "Вийти з групи?",
+            deleteDesc = { a0: String -> "Розмова з " + a0.toString() + " зникне з цього телефона разом із повідомленнями й медіа. У співрозмовника вона залишиться." },
+            deleteDescGroup = "Ви вийдете з цієї групи, а чат зникне з цього телефона разом із повідомленнями й медіа.",
+            deleteLeave = "Вийти з групи й видалити чат",
+            deleted = "Чат видалено",
+            blockAndDelete = "Заблокувати й видалити чат",
+            blockQ = { a0: String -> "Заблокувати " + a0.toString() + "?" },
+            factProfile = "Не бачитиме змін вашого імені чи фото",
+            factServer = "Повідомлення й дзвінки від цієї особи відхилятиме вже сервер — там на вас нічого не чекатиме",
+            factUndo = "Розблокувати можна будь-коли",
+            blocked = { a0: String -> "Заблоковано: " + a0.toString() },
+            unblocked = "Користувача розблоковано",
+            cancel = "Скасувати"
+        )
+
+        val DE = ChatMenuStrings(
+            pin = "Anheften",
+            unpin = "Loslösen",
+            pinned = "Angeheftet",
+            unpinned = "Losgelöst",
+            mute = "Benachrichtigungen stummschalten",
+            markRead = "Als gelesen markieren",
+            localName = "Lokalen Namen ändern",
+            block = "Blockieren",
+            unblock = "Freigeben",
+            deleteChat = "Chat löschen",
+            leaveGroup = "Gruppe verlassen",
+            deleteQ = "Chat löschen?",
+            deleteQGroup = "Gruppe verlassen?",
+            deleteDesc = { a0: String -> "Die Unterhaltung mit " + a0.toString() + " verschwindet samt Nachrichten und Medien von diesem Handy. Dein Gegenüber behält sie." },
+            deleteDescGroup = "Du verlässt diese Gruppe, und der Chat verschwindet samt Nachrichten und Medien von diesem Handy.",
+            deleteLeave = "Gruppe verlassen und Chat löschen",
+            deleted = "Chat gelöscht",
+            blockAndDelete = "Blockieren und Chat löschen",
+            blockQ = { a0: String -> a0.toString() + " blockieren?" },
+            factProfile = "Die Person sieht keine Änderungen deines Namens oder Fotos",
+            factServer = "Nachrichten und Anrufe dieser Person lehnt schon der Server ab – dort wartet nichts auf dich",
+            factUndo = "Du kannst die Blockierung jederzeit aufheben",
+            blocked = { a0: String -> "Blockiert: " + a0.toString() },
+            unblocked = "Nutzer freigegeben",
+            cancel = "Abbrechen"
+        )
+
+        val ZH = ChatMenuStrings(
+            pin = "釘選",
+            unpin = "取消釘選",
+            pinned = "已釘選",
+            unpinned = "已取消釘選",
+            mute = "將通知設為靜音",
+            markRead = "標示為已讀",
+            localName = "變更本機名稱",
+            block = "封鎖",
+            unblock = "解除封鎖",
+            deleteChat = "刪除聊天",
+            leaveGroup = "離開群組",
+            deleteQ = "要刪除這個聊天嗎？",
+            deleteQGroup = "要離開群組嗎？",
+            deleteDesc = { a0: String -> "與 " + a0.toString() + " 的聊天，連同其中的訊息和媒體，將從這支手機中移除。對方仍會保留。" },
+            deleteDescGroup = "你將離開此群組，聊天連同其中的訊息和媒體將從這支手機中移除。",
+            deleteLeave = "離開群組並刪除聊天",
+            deleted = "聊天已刪除",
+            blockAndDelete = "封鎖並刪除聊天",
+            blockQ = { a0: String -> "要封鎖 " + a0.toString() + " 嗎？" },
+            factProfile = "對方將看不到你名稱或相片的變更",
+            factServer = "伺服器會拒絕對方的訊息和通話，不會有任何內容等著你",
+            factUndo = "你隨時可以解除封鎖",
+            blocked = { a0: String -> "已封鎖：" + a0.toString() },
+            unblocked = "已解除封鎖使用者",
+            cancel = "取消"
+        )
+
+        fun of(chat: ChatStrings): ChatMenuStrings = when (chat) {
+            ChatStrings.PL -> PL
+            ChatStrings.CS -> CS
+            ChatStrings.UK -> UK
+            ChatStrings.DE -> DE
+            ChatStrings.ZH -> ZH
+            else -> EN
+        }
+    }
+}

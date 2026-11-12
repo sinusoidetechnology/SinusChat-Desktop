@@ -1,0 +1,225 @@
+name: SinusChat-Desktop release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "desktop/build.gradle.kts"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Check version
+    runs-on: ubuntu-22.04
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - id: check
+        run: |
+          read_version() { grep -m1 'val appVersion' | sed -E 's/.*"([^"]+)".*/\1/'; }
+          NEW=$(read_version < desktop/build.gradle.kts)
+          OLD=""
+          BEFORE="${{ github.event.before }}"
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            OLD=$(git show "$BEFORE:desktop/build.gradle.kts" 2>/dev/null | read_version || true)
+          elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            OLD=$(git show "HEAD~1:desktop/build.gradle.kts" 2>/dev/null | read_version || true)
+          fi
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || { [ -n "$OLD" ] && [ "$OLD" != "$NEW" ]; }; then
+            echo "Wersja: '$OLD' -> '$NEW'"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Wersja bez zmian ($NEW), pomijam."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: version
+    if: needs.version.outputs.changed == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            tasks: ":desktop:packageSetup :desktop:packagePortable :desktop:packagePortableSession"
+          - name: linux-x64
+            os: ubuntu-22.04
+            tasks: ":desktop:packageDeb :desktop:packageRpm"
+    defaults:
+      run:
+        shell: bash
+        working-directory: sinuschatwindowsapp
+    steps:
+      - name: Checkout SinusChat-Desktop
+        uses: actions/checkout@v4
+        with:
+          path: sinuschatwindowsapp
+
+      - name: Checkout shared link module
+        uses: actions/checkout@v4
+        with:
+          repository: sinusoidetechnology/SinusChat
+          path: AndroidStudioProjects/SC
+          sparse-checkout: |
+            link
+            gradle
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: |
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y rpm fakeroot
+
+      - name: Build installers
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon ${{ matrix.tasks }}
+
+      - name: Collect installers
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          OUT="$GITHUB_WORKSPACE/out"
+          mkdir -p "$OUT"
+          BIN=desktop/build/compose/binaries/main
+          case "${{ matrix.name }}" in
+            windows-x64)
+              cp "$BIN"/setup/SinusChat-Setup-*.exe "$OUT/"
+              cp "$BIN"/portable/*-portable.zip "$OUT/SinusChat-Desktop-windows-x64-portable.zip"
+              cp "$BIN"/portable/*-portable-session.zip "$OUT/SinusChat-Desktop-windows-x64-portable-session.zip" ;;
+            linux-x64)
+              DEB=$(ls "$BIN"/deb/*.deb | head -n1)
+              WORK=$(mktemp -d)
+              dpkg-deb -R "$DEB" "$WORK/pkg"
+              for LIB in libasound2 libpng16-16 libglib2.0-0 libgtk-3-0 libatk1.0-0 libcups2 libcurl4 libssl3; do
+                sed -i -E "/^Depends:/ s/(^|[ ,])$LIB( \([^)]*\))?(,|$)/\1${LIB}t64 | $LIB\2\3/" "$WORK/pkg/DEBIAN/control"
+              done
+              grep '^Depends:' "$WORK/pkg/DEBIAN/control"
+              dpkg-deb --root-owner-group -b "$WORK/pkg" "$OUT/SinusChat-Desktop-$VERSION-linux-x64.deb"
+              cp "$BIN"/rpm/*.rpm "$OUT/SinusChat-Desktop-$VERSION-linux-x64.rpm" ;;
+          esac
+          ls -la "$OUT"
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.name }}
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Sign and publish
+    needs: [version, build]
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: sinuschatwindowsapp
+    steps:
+      - name: Checkout SinusChat-Desktop
+        uses: actions/checkout@v4
+        with:
+          path: sinuschatwindowsapp
+
+      - name: Checkout shared link module
+        uses: actions/checkout@v4
+        with:
+          repository: sinusoidetechnology/SinusChat
+          path: AndroidStudioProjects/SC
+          sparse-checkout: |
+            link
+            gradle
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          merge-multiple: true
+          path: dist
+
+      - name: Build and sign manifest
+        env:
+          SINUSCHAT_UPDATE_KEY: ${{ secrets.SINUSCHAT_UPDATE_KEY }}
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          chmod +x gradlew
+          ./gradlew --no-daemon :desktop:updateManifest \
+            -PpackagesDir="$GITHUB_WORKSPACE/dist" \
+            -PupdateBase="https://sinusoide.pl/pobierz/desktop/" \
+            -Pchangelog="https://sinusoide.pl/nowosci.html#desktop-$VERSION"
+          cat desktop/build/update/desktop-latest.json
+          cp "$GITHUB_WORKSPACE"/dist/*-portable*.zip desktop/build/update/
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: SinusChat-Desktop ${{ needs.version.outputs.version }}
+          body: |
+            **SinusChat-Desktop ${{ needs.version.outputs.version }}**
+
+            - Windows 10/11 (64-bit): `SinusChat-Desktop-windows-x64-setup.exe`
+            - Windows bez instalacji: `SinusChat-Desktop-windows-x64-portable.zip`
+            - Windows, jednorazowa sesja: `SinusChat-Desktop-windows-x64-portable-session.zip`
+            - Linux Debian/Ubuntu: `SinusChat-Desktop-linux-x64.deb`
+            - Linux Fedora/openSUSE: `SinusChat-Desktop-linux-x64.rpm`
+
+            Co nowego: https://sinusoide.pl/nowosci.html#desktop-${{ needs.version.outputs.version }}
+          draft: false
+          prerelease: false
+          make_latest: "true"
+          fail_on_unmatched_files: true
+          files: sinuschatwindowsapp/desktop/build/update/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check public download
+        continue-on-error: true
+        run: |
+          sleep 10
+          URL="https://github.com/${{ github.repository }}/releases/latest/download/desktop-latest.json"
+          if curl -fsSL "$URL" | grep -F "\"version\": \"${{ needs.version.outputs.version }}\""; then
+            echo "Aktualizacja widoczna publicznie."
+          else
+            echo "::warning::Plik aktualizacji nie jest publicznie dostępny (repozytorium prywatne?)"
+          fi
