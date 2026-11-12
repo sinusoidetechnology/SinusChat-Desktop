@@ -7,6 +7,11 @@ on:
     paths:
       - "desktop/build.gradle.kts"
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Opublikuj wydanie na GitHubie"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -185,12 +190,20 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon :desktop:updateManifest \
             -PpackagesDir="$GITHUB_WORKSPACE/dist" \
-            -PupdateBase="https://sinusoide.pl/pobierz/desktop/" \
             -Pchangelog="https://sinusoide.pl/nowosci.html#desktop-$VERSION"
           cat desktop/build/update/desktop-latest.json
           cp "$GITHUB_WORKSPACE"/dist/*-portable*.zip desktop/build/update/
 
+      - name: Keep release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: SinusChat-Desktop-${{ needs.version.outputs.version }}
+          path: sinuschatwindowsapp/desktop/build/update/*
+          if-no-files-found: error
+          retention-days: 14
+
       - name: GitHub release
+        if: github.event_name == 'push' || inputs.publish
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.version.outputs.version }}
@@ -214,6 +227,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check public download
+        if: github.event_name == 'push' || inputs.publish
         continue-on-error: true
         run: |
           sleep 10
